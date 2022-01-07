@@ -4,5 +4,5 @@
 Master's degree application written in JavaScript.
 
 ** TODO **
-[ ] - finish app
-[ ] - write documentation
+- [ ] finish app
+- [ ] write documentation
