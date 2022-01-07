@@ -3,6 +3,7 @@
 
 Master's degree application written in JavaScript.
 
-** TODO **
+### TODO
+
 - [ ] finish app
 - [ ] write documentation
