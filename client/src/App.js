@@ -18,23 +18,41 @@ function App() {
    */
   ///
   const handleVideoPlaying = async (e, streamRef) => {
-
+    console.log('PLAYING')
     if (e.target) {
 
       streamRef.current = e.target.captureStream();
       const videoTrack = streamRef.current.getVideoTracks()[0];
+      videoTrack.applyConstraints({
+        frameRate: {
+          exact: 25,
+        }
+      });
+      console.log('FRAMERATE:', videoTrack.getSettings().frameRate)
       const trackProcessor = new window.MediaStreamTrackProcessor({
         track: videoTrack
       });
+      //console.log(videoTrack)
       const readableStream = trackProcessor.readable;
       
       if (workerRef.current) {
 
-        workerRef.current.postMessage(readableStream, [readableStream]);
+        workerRef.current.postMessage({
+          action: 'readStream',
+          data: readableStream
+        }, [readableStream]);
 
       }
 
     }
+
+  };
+
+  const handleVideoWaiting = (e) => {
+
+  };
+
+  const handleVideoPause = (e) => {
 
   };
   ///
@@ -45,6 +63,7 @@ function App() {
   ///
   useEffect(() => {
 
+    console.log(navigator.mediaDevices.getSupportedConstraints().frameRate ? 'FrameRate constraints supported.' : 'FrameRate constraints NOT supported!');
     workerRef.current = new Worker('worker.js');
 
     return () => {
@@ -66,6 +85,8 @@ function App() {
         controls 
         className='video'
         onPlaying={(e) => handleVideoPlaying(e, videoStreamRef)}
+        onWaiting={handleVideoWaiting}
+        onPause={handleVideoPause}
         ref={videoRef}>
         <source src={`${host}/videos/1`}></source>
       </video>
