@@ -1,26 +1,36 @@
+const decodeWorker = new Worker('decode-worker.js');
 
 let paused = false,
     reader = undefined,
     offscreenCanvas = undefined,
-    renderingContext = undefined;
+    renderingContext = undefined,
+    videoHeight = 0,
+    videoWidth = 0;
 
-const readFrame = async (timeoutId, reader) => {
+let frameIndex = 0;
+const frames = [];
+
+const readFrame = async (reader) => {
 
     const result = await reader.read();
+    
+    if (!result.done && result.value) {
 
-    renderingContext.drawImage(result.value, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
+        //renderingContext.drawImage(result.value, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
+        //result.value.close();
 
-    result.value.close();
+        //const imageData = renderingContext.getImageData(0, 0, videoWidth, videoHeight);
+        //frames.push(imageData);
+        frames.push(result.value)
+        console.log(frames.length)
+
+    }
 
     clearInterval(timeoutId);
 
     if (!result.done && !paused) {
 
-        timeoutId = setTimeout(() => {
-
-            readFrame(timeoutId, reader);
-
-        }, 0);
+        readFrame(reader);
 
     }
 }
@@ -40,16 +50,10 @@ onmessage = async (e) => {
                 reader = data.getReader();
 
             }
-            console.log(reader)
+            
             let frames = 0;
 
-            //while (true) {
-            let timeoutId = setTimeout(() => {
-
-                readFrame(timeoutId, reader);
-
-            }, 0);
-            //}
+            readFrame(reader);
 
             break;
         }
@@ -62,10 +66,20 @@ onmessage = async (e) => {
             break;
         }
 
+        case 'videoMetadata': {
+
+            videoHeight = data.videoHeight;
+            videoWidth = data.videoWidth;
+            offscreenCanvas = new OffscreenCanvas(videoWidth, videoHeight);
+            renderingContext = offscreenCanvas.getContext('2d');
+
+            break;
+        }
+
         case 'offscreenCanvas': {
 
-            offscreenCanvas = data;
-            renderingContext = offscreenCanvas.getContext('2d');
+            //offscreenCanvas = data;
+            //renderingContext = offscreenCanvas.getContext('2d');
 
             break;
         }

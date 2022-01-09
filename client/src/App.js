@@ -19,12 +19,25 @@ function App() {
    */
   ///
   const handleVideoMetadataLoaded = (e) => {
+    
 
     if (videoRef.current && canvasRef.current) {
 
       const updatedHeight = videoRef.current.getBoundingClientRect().height.toFixed(2);
       
       canvasRef.current.style.height = `${updatedHeight}px`;
+
+      if (workerRef.current) {
+        
+        workerRef.current.postMessage({
+          action: 'videoMetadata',
+          data: {
+            videoHeight: videoRef.current.videoHeight,
+            videoWidth: videoRef.current.videoWidth,
+          }
+        });
+
+      }
 
     }
 
