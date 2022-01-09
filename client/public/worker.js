@@ -1,24 +1,55 @@
+
+let paused = false,
+    reader = undefined,
+    offscreenCanvas = undefined,
+    renderingContext = undefined;
+
+const readFrame = async (timeoutId, reader) => {
+
+    const result = await reader.read();
+
+    renderingContext.drawImage(result.value, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
+
+    result.value.close();
+
+    clearInterval(timeoutId);
+
+    if (!result.done && !paused) {
+
+        timeoutId = setTimeout(() => {
+
+            readFrame(timeoutId, reader);
+
+        }, 0);
+
+    }
+}
+
 onmessage = async (e) => {
-    console.log(e)
+    
     const { action, data } = e.data;
 
     switch (action) {
 
-        case 'readStream': {
+        case 'playing': {
 
-            const reader = data.getReader();
-            let frames = 0;
+            paused = false;
 
-            while (true) {
+            if (!reader && data) {
 
-                const result = await reader.read();
-
-                if (result.done) break;
-
-                console.log(frames++);
-                result.value.close();
+                reader = data.getReader();
 
             }
+            console.log(reader)
+            let frames = 0;
+
+            //while (true) {
+            let timeoutId = setTimeout(() => {
+
+                readFrame(timeoutId, reader);
+
+            }, 0);
+            //}
 
             break;
         }
@@ -26,24 +57,22 @@ onmessage = async (e) => {
         case 'waiting':
         case 'pause': {
 
+            paused = true;
+
+            break;
+        }
+
+        case 'offscreenCanvas': {
+
+            offscreenCanvas = data;
+            renderingContext = offscreenCanvas.getContext('2d');
+
             break;
         }
 
         default: {
             break;
         }
-
-    }
-    const reader = readableStream.getReader();
-    let frames = 0;
-    while (true) {
-
-        const result = await reader.read();
-
-        if (result.done) break;
-
-        //console.log(frames++);
-        result.value.close();
 
     }
 

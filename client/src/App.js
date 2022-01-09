@@ -9,17 +9,30 @@ function App() {
    */
   ///
   const videoRef = useRef(null);
-  const videoStreamRef = useRef();
+  const videoStreamRef = useRef(null);
   const workerRef = useRef();
+  const canvasRef = useRef(null);
   ///
 
   /**
    * Handlers
    */
   ///
+  const handleVideoMetadataLoaded = (e) => {
+
+    if (videoRef.current && canvasRef.current) {
+
+      const updatedHeight = videoRef.current.getBoundingClientRect().height.toFixed(2);
+      console.log(updatedHeight)
+      canvasRef.current.style.height = `${updatedHeight}px`;
+
+    }
+
+  }
+
   const handleVideoPlaying = async (e, streamRef) => {
-    console.log('PLAYING')
-    if (e.target) {
+    
+    if (e.target && !videoStreamRef.current) {
 
       streamRef.current = e.target.captureStream();
       const videoTrack = streamRef.current.getVideoTracks()[0];
@@ -28,7 +41,7 @@ function App() {
           exact: 25,
         }
       });
-      console.log('FRAMERATE:', videoTrack.getSettings().frameRate)
+      
       const trackProcessor = new window.MediaStreamTrackProcessor({
         track: videoTrack
       });
@@ -38,9 +51,20 @@ function App() {
       if (workerRef.current) {
 
         workerRef.current.postMessage({
-          action: 'readStream',
+          action: 'playing',
           data: readableStream
         }, [readableStream]);
+
+      }
+
+    } else {
+
+      if (workerRef.current) {
+
+        workerRef.current.postMessage({
+          action: 'playing',
+          data: null,
+        });
 
       }
 
@@ -50,9 +74,27 @@ function App() {
 
   const handleVideoWaiting = (e) => {
 
+    if (workerRef.current) {
+
+      workerRef.current.postMessage({
+        action: 'waiting',
+        data: null,
+      });
+
+    }
+
   };
 
   const handleVideoPause = (e) => {
+
+    if (workerRef.current) {
+
+      workerRef.current.postMessage({
+        action: 'pause',
+        data: null,
+      });
+
+    }
 
   };
   ///
@@ -65,6 +107,17 @@ function App() {
 
     console.log(navigator.mediaDevices.getSupportedConstraints().frameRate ? 'FrameRate constraints supported.' : 'FrameRate constraints NOT supported!');
     workerRef.current = new Worker('worker.js');
+
+    if (canvasRef.current && workerRef.current) {
+
+      const offscreenCanvas = canvasRef.current.transferControlToOffscreen();
+
+      workerRef.current.postMessage({
+        action: 'offscreenCanvas',
+        data: offscreenCanvas,
+      }, [offscreenCanvas]);
+
+    }
 
     return () => {
 
@@ -84,12 +137,17 @@ function App() {
       <video crossOrigin='anonymous' 
         controls 
         className='video'
+        onLoadedMetadata={handleVideoMetadataLoaded}
         onPlaying={(e) => handleVideoPlaying(e, videoStreamRef)}
         onWaiting={handleVideoWaiting}
         onPause={handleVideoPause}
         ref={videoRef}>
         <source src={`${host}/videos/1`}></source>
       </video>
+      <canvas className='canvas' 
+        ref={canvasRef}>
+
+      </canvas>
     </div>
   );
 
