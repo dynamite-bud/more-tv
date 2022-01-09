@@ -7,8 +7,39 @@ let paused = false,
     videoHeight = 0,
     videoWidth = 0;
 
-let frameIndex = 0;
+let processingFrame = 0;
 const frames = [];
+
+decodeWorker.onmessage = (e) => {
+
+    const { action, data } = e.data;
+
+    switch (action) {
+
+        case 'requestFrame': {
+
+            const frameBuffer = frames[processingFrame].data.buffer;
+
+            decodeWorker.postMessage({
+                action: 'detectWatermark',
+                data: {
+                    frame: frameBuffer,
+                    index: processingFrame,
+                },
+            }, [frameBuffer]);
+
+            processingFrame++;
+
+            break;
+        }
+
+        default: {
+            break;
+        }
+
+    }
+
+};
 
 const readFrame = async (reader) => {
 
@@ -16,17 +47,31 @@ const readFrame = async (reader) => {
     
     if (!result.done && result.value) {
 
-        //renderingContext.drawImage(result.value, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
-        //result.value.close();
+        renderingContext.drawImage(result.value, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
+        result.value.close();
 
-        //const imageData = renderingContext.getImageData(0, 0, videoWidth, videoHeight);
-        //frames.push(imageData);
-        frames.push(result.value)
-        console.log(frames.length)
+        const imageData = renderingContext.getImageData(0, 0, videoWidth, videoHeight);
+        
+        frames.push(imageData);
+        
+        if (frames.length === 1) {
+
+            
+            const frameBuffer = frames[processingFrame].data.buffer;
+
+            decodeWorker.postMessage({
+                action: 'detectWatermark',
+                data: {
+                    frame: frameBuffer,
+                    index: processingFrame,
+                },
+            }, [frameBuffer]);
+
+            processingFrame++;
+
+        }
 
     }
-
-    clearInterval(timeoutId);
 
     if (!result.done && !paused) {
 

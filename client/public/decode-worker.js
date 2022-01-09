@@ -11,7 +11,7 @@ importScripts('./math.js');
 
 
 //var port = undefined;
-
+/*
 var frames = 0;
 var frameBuffer = [];
 
@@ -23,6 +23,7 @@ var appending = false;
 var decoding = false;
 
 var decoder = undefined;
+*/
 
 function fft2(array, rows = 40, cols = 40) {
 
@@ -507,20 +508,23 @@ function detectWatermark (imageData) {
   return payload;
 }
 
-function processFrame() {
+function processFrame(frame, index) {
   
-  if (currentFrame < frameBuffer.length && !appending && !decoding) {
+  //if (currentFrame < frameBuffer.length && !appending && !decoding) {
     
-    decoding = true;
+   //decoding = true;
 
-    if (decoding) {
+    //if (decoding) {
 
-    let frame = frameBuffer[currentFrame];
+    //let frame = frameBuffer[currentFrame];
 
-    let clampedArrayRgb = new Uint8ClampedArray(frame, 54).reverse();
+    //!!!!//let clampedArrayRgb = new Uint8ClampedArray(frame, 54).reverse();//latest commented !!!!!
+    let clampedArrayRgb = new Uint8ClampedArray(frame);//latest commented 2!!!
+    
     //let clampedArrayBgr = new Uint8ClampedArray(frame, 54);
     
-    let rgbImage = new cv.matFromArray(360, 640, cv.CV_8UC3, clampedArrayRgb);
+    let rgbImage = new cv.matFromArray(360, 640, cv.CV_8UC3, clampedArrayRgb);// latest commented 3!!!!
+    
     //let bgrImage = new cv.matFromArray(360, 640, cv.CV_8UC3, clampedArrayBgr);
 
     let grayImage = new cv.Mat(360, 640, cv.CV_8UC1);
@@ -531,7 +535,7 @@ function processFrame() {
 
     rgbImage.delete();
     
-    currentFrame++;
+    //currentFrame++;
 
     //decoding = false;
 
@@ -545,18 +549,37 @@ function processFrame() {
     );
     */
 
-    console.log(`[${currentFrame}]: ${payload}`);
-    }
-  }
+    console.log(`[${index + 1}]: ${payload}`);
+    //}
+  
+  //}
 
-  else {
-    clearInterval(timer);
-  }
+  //else {
+  //  clearInterval(timer);
+  //}
   
 }
 
 onmessage = (e) => {
 
+  const { action, data } = e.data;
+
+  switch (action) {
+
+    case 'detectWatermark': {
+
+      processFrame(data.frame, data.index);
+
+      break;
+
+    }
+
+    default: {
+      break;
+    }
+
+  }
+  /*
   clearInterval(timer);
 
   appending = true;
@@ -581,5 +604,6 @@ onmessage = (e) => {
   appending = false;
 
   timer = setInterval(processFrame, 10);
+  */
 
 }
