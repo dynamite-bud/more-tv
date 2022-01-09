@@ -175,10 +175,10 @@ function dotMultiply(cv_MatVector1, cv_MatVector2) {
   let rp2 = cv_MatVector2.get(0);
   let ip2 = cv_MatVector2.get(1);
   
-  if (currentFrame >= 155) {
+  //!!//if (currentFrame >= 155) {// latest commented 4!!!
     //console.log(rp1.data64F)
     //console.log(currentFrame, rp1.doubleAt(20, 0))
-  }
+  //!!//}
 
   for (let r = 0; r < rp1.rows; r++) {
     for (let c = 0; c < rp1.cols; c++) {
@@ -188,9 +188,9 @@ function dotMultiply(cv_MatVector1, cv_MatVector2) {
       let r2 = rp2.doubleAt(r, c) || 0;
       let i2 = ip2.doubleAt(r, c) || 0;
 
-      if (currentFrame >= 155) {
+      //!!//if (currentFrame >= 155) {// latest commented 6!!!
         //console.log(r1, i1, r2, i2)
-      }
+      //!!?/}
 
       let complex1 = math.complex(r1, i1);
 
@@ -520,10 +520,12 @@ function processFrame(frame, index) {
 
     //!!!!//let clampedArrayRgb = new Uint8ClampedArray(frame, 54).reverse();//latest commented !!!!!
     let clampedArrayRgb = new Uint8ClampedArray(frame);//latest commented 2!!!
+   
     
     //let clampedArrayBgr = new Uint8ClampedArray(frame, 54);
     
-    let rgbImage = new cv.matFromArray(360, 640, cv.CV_8UC3, clampedArrayRgb);// latest commented 3!!!!
+    //!!//let rgbImage = new cv.matFromArray(360, 640, cv.CV_8UC3, clampedArrayRgb);// latest commented 3!!!!
+    let rgbImage = new cv.matFromArray(360, 640, cv.CV_8UC4, clampedArrayRgb);
     
     //let bgrImage = new cv.matFromArray(360, 640, cv.CV_8UC3, clampedArrayBgr);
 
@@ -550,6 +552,11 @@ function processFrame(frame, index) {
     */
 
     console.log(`[${index + 1}]: ${payload}`);
+
+    postMessage({
+      action: 'requestFrame',
+      data: null,
+    });
     //}
   
   //}

@@ -53,10 +53,10 @@ const readFrame = async (reader) => {
         const imageData = renderingContext.getImageData(0, 0, videoWidth, videoHeight);
         
         frames.push(imageData);
+        console.log(frames.length)
         
         if (frames.length === 1) {
 
-            
             const frameBuffer = frames[processingFrame].data.buffer;
 
             decodeWorker.postMessage({
