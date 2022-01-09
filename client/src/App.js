@@ -23,7 +23,7 @@ function App() {
     if (videoRef.current && canvasRef.current) {
 
       const updatedHeight = videoRef.current.getBoundingClientRect().height.toFixed(2);
-      console.log(updatedHeight)
+      
       canvasRef.current.style.height = `${updatedHeight}px`;
 
     }
